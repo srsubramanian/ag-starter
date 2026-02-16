@@ -5,7 +5,6 @@ const config: Config = {
   darkMode: ["class"],
   content: [
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@tremor/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     container: {
@@ -49,31 +48,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Tremor colors — mapped to work alongside shadcn/ui
-        tremor: {
-          brand: {
-            faint: "hsl(var(--primary) / 0.05)",
-            muted: "hsl(var(--primary) / 0.2)",
-            subtle: "hsl(var(--primary) / 0.4)",
-            DEFAULT: "hsl(var(--primary))",
-            emphasis: "hsl(var(--primary))",
-            inverted: "hsl(var(--primary-foreground))",
-          },
-          background: {
-            muted: "hsl(var(--muted))",
-            subtle: "hsl(var(--secondary))",
-            DEFAULT: "hsl(var(--background))",
-            emphasis: "hsl(var(--foreground))",
-          },
-          border: { DEFAULT: "hsl(var(--border))" },
-          ring: { DEFAULT: "hsl(var(--ring))" },
-          content: {
-            subtle: "hsl(var(--muted-foreground))",
-            DEFAULT: "hsl(var(--foreground))",
-            emphasis: "hsl(var(--foreground))",
-            strong: "hsl(var(--foreground))",
-            inverted: "hsl(var(--background))",
-          },
+        chart: {
+          "1": "hsl(var(--chart-1))",
+          "2": "hsl(var(--chart-2))",
+          "3": "hsl(var(--chart-3))",
+          "4": "hsl(var(--chart-4))",
+          "5": "hsl(var(--chart-5))",
         },
       },
       borderRadius: {
@@ -100,14 +80,6 @@ const config: Config = {
       },
     },
   },
-  safelist: [
-    // Tremor chart colors
-    {
-      pattern:
-        /^(bg|border|ring|text)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(-(50|100|200|300|400|500|600|700|800|900|950))?$/,
-      variants: ["hover", "ui-selected"],
-    },
-  ],
   plugins: [tailwindAnimate],
 };
 

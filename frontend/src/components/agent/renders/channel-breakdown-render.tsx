@@ -1,7 +1,14 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DonutChart, Badge } from "@tremor/react";
+import { Badge } from "@/components/ui/badge";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { PieChart, Pie, Cell } from "recharts";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 interface ChannelData {
@@ -23,6 +30,14 @@ interface ChannelBreakdownRenderProps {
   status: "inProgress" | "executing" | "complete";
   result: ChannelBreakdownData | undefined;
 }
+
+const COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(190 80% 50%)",
+  "hsl(var(--chart-4))",
+  "hsl(260 60% 55%)",
+  "hsl(var(--chart-5))",
+];
 
 function Skeleton() {
   return (
@@ -55,17 +70,22 @@ export function ChannelBreakdownRender({
     value: c.volume_pct,
   }));
 
+  const chartConfig: ChartConfig = Object.fromEntries(
+    result.channels.map((c, i) => [
+      c.channel,
+      { label: c.channel, color: COLORS[i % COLORS.length] },
+    ])
+  );
+
   return (
     <div className="space-y-4 w-full">
       {/* Info Badges */}
       <div className="flex flex-wrap gap-2">
-        <Badge color="blue" size="sm">
-          Fastest: {result.fastest_channel}
-        </Badge>
-        <Badge color="emerald" size="sm">
+        <Badge variant="blue">Fastest: {result.fastest_channel}</Badge>
+        <Badge variant="emerald">
           Highest Value: {result.highest_value_channel}
         </Badge>
-        <Badge color="gray" size="sm">
+        <Badge variant="gray">
           {result.total_channels_active} Channels Active
         </Badge>
       </div>
@@ -78,14 +98,50 @@ export function ChannelBreakdownRender({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DonutChart
-            className="h-48"
-            data={donutData}
-            category="value"
-            index="name"
-            colors={["blue", "cyan", "indigo", "violet", "fuchsia"]}
-            valueFormatter={(v) => `${v.toFixed(1)}%`}
-          />
+          <ChartContainer config={chartConfig} className="h-48 w-full mx-auto">
+            <PieChart>
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    nameKey="name"
+                    formatter={(value) => `${Number(value).toFixed(1)}%`}
+                  />
+                }
+              />
+              <Pie
+                data={donutData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                dataKey="value"
+                nameKey="name"
+                strokeWidth={2}
+                stroke="hsl(var(--background))"
+              >
+                {donutData.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center gap-3 mt-2">
+            {donutData.map((entry, i) => (
+              <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+                <div
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                />
+                <span className="text-muted-foreground">
+                  {entry.name} ({entry.value.toFixed(1)}%)
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

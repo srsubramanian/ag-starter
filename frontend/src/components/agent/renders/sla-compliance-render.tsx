@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CategoryBar, Badge } from "@tremor/react";
+import { Badge } from "@/components/ui/badge";
 import { formatPercent } from "@/lib/utils";
 
 interface SlaComplianceData {
@@ -30,7 +30,7 @@ interface SlaComplianceRenderProps {
   result: SlaComplianceData | undefined;
 }
 
-function statusColor(s: string): "emerald" | "amber" | "red" {
+function statusVariant(s: string): "emerald" | "amber" | "red" {
   if (s === "COMPLIANT") return "emerald";
   if (s === "AT_RISK") return "amber";
   return "red";
@@ -65,28 +65,28 @@ export function SlaComplianceRender({
 
   const { compliance_status, sla_targets } = result;
 
-  // CategoryBar: show P50, P95-P50, P99-P95 as segments
+  // Segmented bar: show P50, P95-P50, P99-P95 as segments
   const p50 = result.p50_latency_ms;
   const p95 = result.p95_latency_ms;
   const p99 = result.p99_latency_ms;
   const total = p99;
-  const categoryValues = [
-    Math.round((p50 / total) * 100),
-    Math.round(((p95 - p50) / total) * 100),
-    Math.round(((p99 - p95) / total) * 100),
+  const segments = [
+    { pct: Math.round((p50 / total) * 100), color: "bg-emerald-500" },
+    { pct: Math.round(((p95 - p50) / total) * 100), color: "bg-amber-500" },
+    { pct: Math.round(((p99 - p95) / total) * 100), color: "bg-rose-500" },
   ];
 
   return (
     <div className="space-y-4 w-full">
       {/* Compliance Status Badges */}
       <div className="flex flex-wrap gap-2">
-        <Badge color={statusColor(compliance_status.uptime)} size="sm">
+        <Badge variant={statusVariant(compliance_status.uptime)}>
           Uptime: {compliance_status.uptime}
         </Badge>
-        <Badge color={statusColor(compliance_status.latency)} size="sm">
+        <Badge variant={statusVariant(compliance_status.latency)}>
           Latency: {compliance_status.latency}
         </Badge>
-        <Badge color={statusColor(compliance_status.error_rate)} size="sm">
+        <Badge variant={statusVariant(compliance_status.error_rate)}>
           Error Rate: {compliance_status.error_rate}
         </Badge>
       </div>
@@ -114,7 +114,9 @@ export function SlaComplianceRender({
         <Card>
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground">Error Rate</p>
-            <p className="text-xl font-bold">{formatPercent(result.error_rate_pct)}</p>
+            <p className="text-xl font-bold">
+              {formatPercent(result.error_rate_pct)}
+            </p>
             <p className="text-xs text-muted-foreground">
               Target: {formatPercent(sla_targets.error_rate_target_pct)}
             </p>
@@ -132,14 +134,20 @@ export function SlaComplianceRender({
       {/* Latency Percentiles */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Latency Percentiles</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Latency Percentiles
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <CategoryBar
-            values={categoryValues}
-            colors={["emerald", "amber", "rose"]}
-            className="mt-2"
-          />
+          <div className="flex h-4 w-full overflow-hidden rounded-full mt-2">
+            {segments.map((seg, i) => (
+              <div
+                key={i}
+                className={`${seg.color} h-full`}
+                style={{ width: `${seg.pct}%` }}
+              />
+            ))}
+          </div>
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>P50: {p50}ms</span>
             <span>P95: {p95}ms</span>

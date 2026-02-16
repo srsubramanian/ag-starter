@@ -1,7 +1,14 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, BarList, BadgeDelta } from "@tremor/react";
+import { DeltaBadge } from "@/components/ui/badge";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { AreaChart, Area, XAxis, CartesianGrid } from "recharts";
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils";
 
 interface TransactionSummaryData {
@@ -19,6 +26,10 @@ interface TransactionSummaryRenderProps {
   status: "inProgress" | "executing" | "complete";
   result: TransactionSummaryData | undefined;
 }
+
+const chartConfig: ChartConfig = {
+  Volume: { label: "Volume", color: "hsl(var(--chart-1))" },
+};
 
 function Skeleton() {
   return (
@@ -48,12 +59,16 @@ export function TransactionSummaryRender({
     "Amount (USD)": d.amount_usd,
   }));
 
-  const merchantBarData = result.top_merchants.map((m) => ({
-    name: m.name,
-    value: m.volume,
-  }));
+  const maxMerchantVolume = Math.max(
+    ...result.top_merchants.map((m) => m.volume)
+  );
 
-  const successDelta = result.success_rate_pct >= 99 ? "increase" : result.success_rate_pct >= 98 ? "unchanged" : "decrease";
+  const successDelta =
+    result.success_rate_pct >= 99
+      ? "up"
+      : result.success_rate_pct >= 98
+        ? "up"
+        : "down";
 
   return (
     <div className="space-y-4 w-full">
@@ -62,21 +77,31 @@ export function TransactionSummaryRender({
         <Card>
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground">Total Transactions</p>
-            <p className="text-xl font-bold">{formatNumber(result.total_transactions)}</p>
+            <p className="text-xl font-bold">
+              {formatNumber(result.total_transactions)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground">Total Amount</p>
-            <p className="text-xl font-bold">{formatCurrency(result.total_amount_usd)}</p>
+            <p className="text-xl font-bold">
+              {formatCurrency(result.total_amount_usd)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3">
             <p className="text-xs text-muted-foreground">Success Rate</p>
             <div className="flex items-center gap-2">
-              <p className="text-xl font-bold">{formatPercent(result.success_rate_pct)}</p>
-              <BadgeDelta deltaType={successDelta} size="sm" />
+              <p className="text-xl font-bold">
+                {formatPercent(result.success_rate_pct)}
+              </p>
+              <DeltaBadge
+                value={`${result.success_rate_pct >= 99 ? "OK" : result.success_rate_pct >= 98 ? "~" : "Low"}`}
+                trend={successDelta}
+                isPositive={result.success_rate_pct >= 98}
+              />
             </div>
           </CardContent>
         </Card>
@@ -96,26 +121,68 @@ export function TransactionSummaryRender({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <AreaChart
-            className="h-48"
-            data={chartData}
-            index="date"
-            categories={["Volume"]}
-            colors={["blue"]}
-            showLegend={false}
-            showGridLines={false}
-            curveType="monotone"
-          />
+          <ChartContainer config={chartConfig} className="h-48 w-full">
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="fillTxVolume" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--chart-1))"
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--chart-1))"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="Volume"
+                stroke="hsl(var(--chart-1))"
+                fill="url(#fillTxVolume)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 
       {/* Top Merchants */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Top Merchants by Volume</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Top Merchants by Volume
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <BarList data={merchantBarData} color="blue" />
+        <CardContent className="space-y-3">
+          {result.top_merchants.map((m) => (
+            <div key={m.name} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{m.name}</span>
+                <span className="text-muted-foreground tabular-nums">
+                  {formatNumber(m.volume)}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted">
+                <div
+                  className="h-2 rounded-full bg-[hsl(var(--chart-1))]"
+                  style={{
+                    width: `${(m.volume / maxMerchantVolume) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

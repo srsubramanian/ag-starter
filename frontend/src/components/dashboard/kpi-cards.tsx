@@ -1,14 +1,33 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, BadgeDelta } from "@tremor/react";
-import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils";
+import { DeltaBadge } from "@/components/ui/badge";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { AreaChart, Area } from "recharts";
+import { formatNumber, formatPercent } from "@/lib/utils";
 import type { KpiData, DailyVolume } from "@/lib/mock-data";
 
 interface KpiCardsProps {
   kpi: KpiData;
   dailyVolumes: DailyVolume[];
 }
+
+const volumeConfig: ChartConfig = {
+  Transactions: { label: "Transactions", color: "hsl(var(--chart-1))" },
+};
+
+const successConfig: ChartConfig = {
+  "Success Rate": { label: "Success Rate", color: "hsl(var(--chart-2))" },
+};
+
+const latencyConfig: ChartConfig = {
+  "Latency (ms)": { label: "Latency (ms)", color: "hsl(var(--chart-3))" },
+};
 
 export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
   const volumeChartData = dailyVolumes.map((d) => ({
@@ -34,13 +53,10 @@ export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Transaction Volume
           </CardTitle>
-          <BadgeDelta
-            deltaType={kpi.transactionVolume.trend > 0 ? "increase" : "decrease"}
-            size="sm"
-          >
-            {kpi.transactionVolume.trend > 0 ? "+" : ""}
-            {kpi.transactionVolume.trend.toFixed(1)}%
-          </BadgeDelta>
+          <DeltaBadge
+            value={`${kpi.transactionVolume.trend > 0 ? "+" : ""}${kpi.transactionVolume.trend.toFixed(1)}%`}
+            trend={kpi.transactionVolume.trend > 0 ? "up" : "down"}
+          />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -49,19 +65,24 @@ export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
           <p className="text-xs text-muted-foreground mt-1">
             vs {formatNumber(kpi.transactionVolume.previous)} last period
           </p>
-          <AreaChart
-            className="mt-4 h-20"
-            data={volumeChartData}
-            index="date"
-            categories={["Transactions"]}
-            colors={["blue"]}
-            showXAxis={false}
-            showYAxis={false}
-            showLegend={false}
-            showGridLines={false}
-            showTooltip={true}
-            curveType="monotone"
-          />
+          <ChartContainer config={volumeConfig} className="mt-4 h-20 w-full aspect-auto">
+            <AreaChart data={volumeChartData}>
+              <defs>
+                <linearGradient id="fillVolume" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="Transactions"
+                stroke="hsl(var(--chart-1))"
+                fill="url(#fillVolume)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 
@@ -71,13 +92,10 @@ export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Success Rate
           </CardTitle>
-          <BadgeDelta
-            deltaType={kpi.successRate.trend > 0 ? "increase" : "decrease"}
-            size="sm"
-          >
-            {kpi.successRate.trend > 0 ? "+" : ""}
-            {kpi.successRate.trend.toFixed(2)}%
-          </BadgeDelta>
+          <DeltaBadge
+            value={`${kpi.successRate.trend > 0 ? "+" : ""}${kpi.successRate.trend.toFixed(2)}%`}
+            trend={kpi.successRate.trend > 0 ? "up" : "down"}
+          />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -86,19 +104,24 @@ export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
           <p className="text-xs text-muted-foreground mt-1">
             vs {formatPercent(kpi.successRate.previous)} last period
           </p>
-          <AreaChart
-            className="mt-4 h-20"
-            data={successChartData}
-            index="date"
-            categories={["Success Rate"]}
-            colors={["emerald"]}
-            showXAxis={false}
-            showYAxis={false}
-            showLegend={false}
-            showGridLines={false}
-            showTooltip={true}
-            curveType="monotone"
-          />
+          <ChartContainer config={successConfig} className="mt-4 h-20 w-full aspect-auto">
+            <AreaChart data={successChartData}>
+              <defs>
+                <linearGradient id="fillSuccess" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="Success Rate"
+                stroke="hsl(var(--chart-2))"
+                fill="url(#fillSuccess)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 
@@ -108,33 +131,35 @@ export function KpiCards({ kpi, dailyVolumes }: KpiCardsProps) {
           <CardTitle className="text-sm font-medium text-muted-foreground">
             Avg Latency
           </CardTitle>
-          <BadgeDelta
-            deltaType={kpi.avgLatency.trend < 0 ? "decrease" : "increase"}
-            size="sm"
-            isIncreasePositive={false}
-          >
-            {kpi.avgLatency.trend > 0 ? "+" : ""}
-            {kpi.avgLatency.trend.toFixed(1)}%
-          </BadgeDelta>
+          <DeltaBadge
+            value={`${kpi.avgLatency.trend > 0 ? "+" : ""}${kpi.avgLatency.trend.toFixed(1)}%`}
+            trend={kpi.avgLatency.trend < 0 ? "down" : "up"}
+            isPositive={kpi.avgLatency.trend < 0}
+          />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{kpi.avgLatency.current}ms</div>
           <p className="text-xs text-muted-foreground mt-1">
             vs {kpi.avgLatency.previous}ms last period
           </p>
-          <AreaChart
-            className="mt-4 h-20"
-            data={latencyChartData}
-            index="date"
-            categories={["Latency (ms)"]}
-            colors={["amber"]}
-            showXAxis={false}
-            showYAxis={false}
-            showLegend={false}
-            showGridLines={false}
-            showTooltip={true}
-            curveType="monotone"
-          />
+          <ChartContainer config={latencyConfig} className="mt-4 h-20 w-full aspect-auto">
+            <AreaChart data={latencyChartData}>
+              <defs>
+                <linearGradient id="fillLatency" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Area
+                type="monotone"
+                dataKey="Latency (ms)"
+                stroke="hsl(var(--chart-3))"
+                fill="url(#fillLatency)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         </CardContent>
       </Card>
     </div>
