@@ -10,7 +10,7 @@ export function AgentChat() {
         title: "FinOps Assistant",
         initial: "Hi! I'm your FinOps Assistant. Ask me about transaction volumes, SLA compliance, or payment channel breakdowns.",
       }}
-      className="h-full"
+      className="h-full max-h-full"
     />
   );
 }

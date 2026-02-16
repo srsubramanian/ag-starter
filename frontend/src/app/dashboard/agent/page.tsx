@@ -3,7 +3,6 @@
 import { CopilotKit } from "@copilotkit/react-core";
 import { AgentChat } from "@/components/agent/agent-chat";
 import { AgentActions } from "@/components/agent/agent-actions";
-import { AgentStateDisplay } from "@/components/agent/agent-state-display";
 import { ToolResultsProvider } from "@/contexts/tool-results-context";
 import { ResultsPanel } from "@/components/agent/results-panel";
 
@@ -20,11 +19,10 @@ export default function AgentPage() {
       <ToolResultsProvider>
         {/* Register actions and readable context */}
         <AgentActions />
-        <AgentStateDisplay />
 
         <div className="flex h-full">
           {/* Left column: Chat */}
-          <div className="w-[480px] shrink-0 border-r">
+          <div className="w-[480px] shrink-0 border-r overflow-hidden">
             <AgentChat />
           </div>
 

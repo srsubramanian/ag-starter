@@ -65,18 +65,18 @@ const renderMap: Record<string, React.FC<{ status: string; result: unknown }>> =
 };
 
 export function ResultsPanel() {
-  const { latestResult } = useToolResults();
+  const { activeResult } = useToolResults();
 
-  if (!latestResult) return <WelcomeState />;
+  if (!activeResult) return <WelcomeState />;
 
-  const RenderComponent = renderMap[latestResult.toolName];
+  const RenderComponent = renderMap[activeResult.toolName];
   if (!RenderComponent) return <WelcomeState />;
 
   return (
     <div className="space-y-4">
       <RenderComponent
-        status={latestResult.status}
-        result={latestResult.result}
+        status={activeResult.status}
+        result={activeResult.result}
       />
     </div>
   );

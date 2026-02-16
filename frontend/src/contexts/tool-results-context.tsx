@@ -11,7 +11,8 @@ export interface ToolResult {
 
 interface ToolResultsContextValue {
   results: ToolResult[];
-  latestResult: ToolResult | null;
+  activeResult: ToolResult | null;
+  selectResult: (toolName: string) => void;
   pushResult: (toolName: string, status: string, result: unknown) => void;
 }
 
@@ -19,6 +20,7 @@ const ToolResultsContext = createContext<ToolResultsContextValue | null>(null);
 
 export function ToolResultsProvider({ children }: { children: ReactNode }) {
   const [results, setResults] = useState<ToolResult[]>([]);
+  const [selectedToolName, setSelectedToolName] = useState<string | null>(null);
   const pendingRef = useRef<ToolResult | null>(null);
   const scheduledRef = useRef(false);
 
@@ -49,19 +51,30 @@ export function ToolResultsProvider({ children }: { children: ReactNode }) {
             }
             return [...prev, pending];
           });
+          // Auto-select the latest incoming result
+          setSelectedToolName(pending.toolName);
         });
       }
     },
     [],
   );
 
+  const selectResult = useCallback((toolName: string) => {
+    setSelectedToolName(toolName);
+  }, []);
+
+  // Show explicitly selected result, or fall back to latest
   const latestResult =
     results.length > 0
       ? results.reduce((a, b) => (a.timestamp >= b.timestamp ? a : b))
       : null;
 
+  const activeResult = selectedToolName
+    ? results.find((r) => r.toolName === selectedToolName) ?? latestResult
+    : latestResult;
+
   return (
-    <ToolResultsContext.Provider value={{ results, latestResult, pushResult }}>
+    <ToolResultsContext.Provider value={{ results, activeResult, selectResult, pushResult }}>
       {children}
     </ToolResultsContext.Provider>
   );

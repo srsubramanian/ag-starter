@@ -13,12 +13,17 @@ const toolMeta: Record<string, { label: string; icon: typeof BarChart3; color: s
 
 function InlineToolCard({ toolName, status }: { toolName: string; status: string }) {
   const meta = toolMeta[toolName];
+  const { selectResult } = useToolResults();
   if (!meta) return null;
   const Icon = meta.icon;
   const isComplete = status === "complete";
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 my-1">
+    <button
+      type="button"
+      onClick={() => selectResult(toolName)}
+      className="flex w-full items-center gap-3 rounded-lg border bg-card px-4 py-3 my-1 text-left hover:bg-accent transition-colors cursor-pointer"
+    >
       <Icon className={`h-4 w-4 shrink-0 ${meta.color}`} />
       <span className="text-sm font-medium flex-1">{meta.label}</span>
       {isComplete ? (
@@ -26,7 +31,7 @@ function InlineToolCard({ toolName, status }: { toolName: string; status: string
       ) : (
         <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
       )}
-    </div>
+    </button>
   );
 }
 
