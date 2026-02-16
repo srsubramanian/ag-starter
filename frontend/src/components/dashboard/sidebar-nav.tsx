@@ -10,7 +10,6 @@ import {
   Settings,
   BarChart3,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
@@ -25,19 +24,14 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-card">
+    <aside className="flex h-screen w-16 flex-col items-center border-r bg-card py-4">
       {/* Brand */}
-      <div className="flex h-16 items-center gap-2 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
-          AG
-        </div>
-        <span className="text-lg font-semibold">ag-starter</span>
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+        AG
       </div>
 
-      <Separator />
-
       {/* Nav links */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="mt-6 flex flex-1 flex-col items-center gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -45,38 +39,25 @@ export function SidebarNav() {
             <Link
               key={item.label}
               href={item.disabled ? "#" : item.href}
+              title={item.label}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 item.disabled && "pointer-events-none opacity-40"
               )}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
-              {item.disabled && (
-                <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                  Soon
-                </span>
-              )}
+              <Icon className="h-5 w-5" />
             </Link>
           );
         })}
       </nav>
 
-      <Separator />
-
-      {/* Tenant info */}
-      <div className="flex items-center gap-3 p-4">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="text-xs">AP</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">Acme Payments</span>
-          <span className="text-xs text-muted-foreground">Enterprise</span>
-        </div>
-      </div>
+      {/* Tenant avatar */}
+      <Avatar className="h-8 w-8" title="Acme Payments">
+        <AvatarFallback className="text-xs">AP</AvatarFallback>
+      </Avatar>
     </aside>
   );
 }

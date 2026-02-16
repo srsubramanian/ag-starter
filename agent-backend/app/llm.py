@@ -62,13 +62,12 @@ class MockLLM(BaseChatModel):
         last_msg = messages[-1].content if messages else ""
         last_msg_lower = last_msg.lower() if isinstance(last_msg, str) else ""
 
-        # Check if this is a follow-up after tool results
-        has_tool_results = any(
-            getattr(m, "type", None) == "tool" for m in messages
-        )
+        # Check if the most recent tool call just returned results
+        # (i.e. the last message is a tool result, meaning we should summarize)
+        last_is_tool_result = getattr(messages[-1], "type", None) == "tool" if messages else False
 
-        if has_tool_results:
-            # Summarize tool results
+        if last_is_tool_result:
+            # Summarize the tool results that just came back
             response = AIMessage(
                 content=(
                     "Based on the data I retrieved, here's your FinOps summary:\n\n"

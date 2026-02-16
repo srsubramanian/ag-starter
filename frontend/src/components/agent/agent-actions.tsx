@@ -2,20 +2,47 @@
 
 import { useCopilotAction, useCopilotReadable } from "@copilotkit/react-core";
 import { getTenantInfo } from "@/lib/mock-data";
+import { useToolResults } from "@/contexts/tool-results-context";
+import { BarChart3, Shield, Zap, Loader2, CheckCircle2 } from "lucide-react";
+
+const toolMeta: Record<string, { label: string; icon: typeof BarChart3; color: string }> = {
+  get_transaction_summary: { label: "Transaction Summary", icon: BarChart3, color: "text-blue-500" },
+  get_sla_compliance: { label: "SLA Compliance", icon: Shield, color: "text-emerald-500" },
+  get_payment_channel_breakdown: { label: "Channel Breakdown", icon: Zap, color: "text-amber-500" },
+};
+
+function InlineToolCard({ toolName, status }: { toolName: string; status: string }) {
+  const meta = toolMeta[toolName];
+  if (!meta) return null;
+  const Icon = meta.icon;
+  const isComplete = status === "complete";
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 my-1">
+      <Icon className={`h-4 w-4 shrink-0 ${meta.color}`} />
+      <span className="text-sm font-medium flex-1">{meta.label}</span>
+      {isComplete ? (
+        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+      ) : (
+        <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+      )}
+    </div>
+  );
+}
 
 /**
- * Registers CopilotKit actions and readable context.
+ * Registers CopilotKit declarative render actions and readable context.
  *
- * - useCopilotReadable: shares frontend state with the agent so it has context
- * - useCopilotAction: defines actions the agent can trigger on the frontend
+ * Each useCopilotAction uses available: "disabled" to act as render-only —
+ * the backend handles tool execution, the frontend only renders the result
+ * inline in the chat when it sees a matching TOOL_CALL event.
  *
- * AG-UI flow for actions:
- *   Agent sends TOOL_CALL_START → frontend executes the action → result sent back
+ * Chat shows a compact card; the full visualization appears in the right panel.
  */
 export function AgentActions() {
   const tenantInfo = getTenantInfo();
+  const { pushResult } = useToolResults();
 
-  // Share dashboard context with the agent via AG-UI readable state
   useCopilotReadable({
     description: "Current tenant information and dashboard context",
     value: {
@@ -25,32 +52,43 @@ export function AgentActions() {
     },
   });
 
-  // Register a sample frontend action the agent can invoke
   useCopilotAction({
-    name: "getTransactionSummary",
-    description: "Display a transaction summary card on the dashboard for the current tenant",
+    name: "get_transaction_summary",
+    description: "Display transaction summary with charts",
     parameters: [
-      {
-        name: "dateRange",
-        type: "string",
-        description: "Date range for the summary (e.g., '7d', '30d')",
-        required: false,
-      },
+      { name: "tenant_id", type: "string" },
+      { name: "date_range", type: "string" },
     ],
-    handler: async ({ dateRange }) => {
-      const range = dateRange || "7d";
-      // In a real app, this would update the dashboard UI
-      return {
-        status: "success",
-        message: `Transaction summary for ${tenantInfo.tenantId} (${range}) displayed on dashboard`,
-        data: {
-          tenantId: tenantInfo.tenantId,
-          dateRange: range,
-          totalTransactions: 1_247_893,
-          successRate: 99.12,
-          avgLatencyMs: 187,
-        },
-      };
+    available: "disabled",
+    render: ({ status, result }) => {
+      pushResult("get_transaction_summary", status, result);
+      return <InlineToolCard toolName="get_transaction_summary" status={status} />;
+    },
+  });
+
+  useCopilotAction({
+    name: "get_sla_compliance",
+    description: "Display SLA compliance metrics",
+    parameters: [
+      { name: "tenant_id", type: "string" },
+    ],
+    available: "disabled",
+    render: ({ status, result }) => {
+      pushResult("get_sla_compliance", status, result);
+      return <InlineToolCard toolName="get_sla_compliance" status={status} />;
+    },
+  });
+
+  useCopilotAction({
+    name: "get_payment_channel_breakdown",
+    description: "Display payment channel breakdown",
+    parameters: [
+      { name: "tenant_id", type: "string" },
+    ],
+    available: "disabled",
+    render: ({ status, result }) => {
+      pushResult("get_payment_channel_breakdown", status, result);
+      return <InlineToolCard toolName="get_payment_channel_breakdown" status={status} />;
     },
   });
 

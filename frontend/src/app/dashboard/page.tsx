@@ -11,15 +11,17 @@ export default function DashboardPage() {
   const categories = useMemo(() => getCategoryBreakdown(), []);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Real-time overview of your payment operations
-        </p>
+    <div className="overflow-y-auto h-full">
+      <div className="container py-8 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Real-time overview of your payment operations
+          </p>
+        </div>
+        <KpiCards kpi={kpi} dailyVolumes={dailyVolumes} />
+        <CategoryChart data={categories} />
       </div>
-      <KpiCards kpi={kpi} dailyVolumes={dailyVolumes} />
-      <CategoryChart data={categories} />
     </div>
   );
 }
