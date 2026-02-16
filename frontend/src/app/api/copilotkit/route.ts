@@ -7,24 +7,16 @@
  *
  * Architecture:
  *   Browser (CopilotKit React) → POST /api/copilotkit → CopilotRuntime
- *     → AG-UI events ← Python Agent Backend (FastAPI + LangGraph)
+ *     → HttpAgent (AG-UI) → POST /agui ← Python Agent Backend (FastAPI SSE)
+ *
+ * The Python backend serves a standard AG-UI SSE endpoint at /agui.
+ * The CopilotKit runtime's HttpAgent (via LangGraphHttpAgent) sends
+ * RunAgentInput as JSON and receives AG-UI SSE events back.
  *
  * WHY IT LIVES HERE:
  *   - Simplicity: single Next.js deployment, no separate Node service
  *   - Same-origin: no CORS configuration needed for the frontend
  *   - Shared auth context: can access Next.js session/cookies if needed later
- *
- * WHEN TO EXTRACT:
- *   - Multi-frontend: if you have mobile apps or other SPAs consuming the same agent
- *   - Independent scaling: if the runtime needs different compute than the UI
- *   - Network isolation: for compliance (e.g., PCI-DSS) where the agent bridge
- *     must live in a separate network zone from the public-facing UI
- *
- * The CopilotKit runtime handles:
- *   1. Receiving chat messages from the React hooks
- *   2. Forwarding them to the Python agent backend via AG-UI protocol
- *   3. Streaming AG-UI events (text chunks, tool calls, state deltas) back
- *   4. Managing run lifecycle (run_id, thread_id)
  */
 
 import {
@@ -32,19 +24,25 @@ import {
   copilotRuntimeNextJSAppRouterEndpoint,
   ExperimentalEmptyAdapter,
 } from "@copilotkit/runtime";
+import { LangGraphHttpAgent } from "@copilotkit/runtime/langgraph";
 
 // The Python agent backend URL — set via env var, defaults to local dev
 const AGENT_BACKEND_URL =
   process.env.AGENT_BACKEND_URL || "http://localhost:8000";
 
-// Configure the CopilotKit runtime to delegate to our Python agent backend.
-// The runtime streams AG-UI protocol events between the frontend and the agent.
+// Register the FinOps Assistant as a LangGraphHttpAgent (AG-UI HttpAgent).
+// This connects to the Python backend's AG-UI SSE endpoint at /agui.
+const finopsAgent = new LangGraphHttpAgent({
+  url: `${AGENT_BACKEND_URL}/agui`,
+});
+
+// Configure the CopilotKit runtime with the agent registered by name.
+// The agent name here must match what the React hooks reference via
+// <CopilotKit agent="finops_assistant">.
 const runtime = new CopilotRuntime({
-  remoteEndpoints: [
-    {
-      url: `${AGENT_BACKEND_URL}/copilotkit`,
-    },
-  ],
+  agents: {
+    finops_assistant: finopsAgent,
+  },
 });
 
 export const POST = async (req: Request) => {
