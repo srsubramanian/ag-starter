@@ -34,7 +34,7 @@
 
 - **Tailwind only** -- no CSS modules, styled-components, or inline styles. Exception: CopilotKit's own `styles.css` import.
 - **Semantic color tokens** -- use `bg-card`, `text-muted-foreground`, `border-primary/10` etc. Never raw colors like `bg-blue-500` except for accent icons.
-- **Tremor charts** -- use `@tremor/react` for all data visualizations (AreaChart, BarList, DonutChart, CategoryBar, Badge, BadgeDelta).
+- **shadcn/ui charts (Recharts v3)** -- use `ChartContainer` + `ChartConfig` from `@/components/ui/chart` for all data visualizations. Wrap Recharts primitives (`AreaChart`, `BarChart`, `PieChart`) inside `ChartContainer`. Chart colors come from CSS variables (`--chart-1` through `--chart-5`) defined in `globals.css`. For non-chart components like horizontal bar lists and segmented bars, use custom Tailwind layouts instead of a chart library.
 
 ---
 

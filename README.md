@@ -7,7 +7,7 @@ A multi-tenant fintech platform starter that combines a modern React UI layer wi
 ```mermaid
 graph LR
     subgraph Browser
-        A[React App<br/>shadcn/ui + Tremor<br/>CopilotKit Hooks]
+        A[React App<br/>shadcn/ui + Recharts<br/>CopilotKit Hooks]
     end
 
     subgraph "Next.js (port 3000)"
@@ -40,7 +40,7 @@ graph LR
 
 ### How it works
 
-1. **Browser** — React app built with Next.js App Router, styled with shadcn/ui and Tremor charts. CopilotKit React hooks (`useCopilotAction`, `useCopilotReadable`, `useCoAgentStateRender`) connect the UI to the agent.
+1. **Browser** — React app built with Next.js App Router, styled with shadcn/ui components and Recharts (via the shadcn/ui chart pattern). CopilotKit React hooks (`useCopilotAction`, `useCopilotReadable`, `useCoAgentStateRender`) connect the UI to the agent.
 
 2. **Next.js API Route** (`/api/copilotkit`) — Hosts the CopilotKit runtime. This is the bridge layer that translates between CopilotKit's React protocol and the AG-UI event stream. It lives inside Next.js for simplicity (same-origin, single deployment).
 
@@ -130,7 +130,7 @@ ag-starter/
 │   │   │   ├── dashboard/             # Dashboard-specific components
 │   │   │   └── ui/                    # shadcn/ui primitives
 │   │   └── lib/                       # Utilities and mock data
-│   ├── tailwind.config.ts             # Unified shadcn/ui + Tremor config
+│   ├── tailwind.config.ts             # Tailwind config with shadcn/ui + chart colors
 │   └── Dockerfile
 │
 ├── agent-backend/                     # Python FastAPI + LangGraph
@@ -155,7 +155,7 @@ ag-starter/
 | Route | Description |
 |---|---|
 | `/` | Landing page with tenant-aware login placeholder |
-| `/dashboard` | KPI cards (Tremor AreaCharts) + category breakdown (Tremor BarChart) |
+| `/dashboard` | KPI cards (Recharts sparklines) + category breakdown (Recharts BarChart) |
 | `/dashboard/agent` | CopilotKit chat sidebar + agent state display + action hooks |
 
 ## AG-UI Event Flow
@@ -190,7 +190,7 @@ These events flow: **LangGraph Agent** → **CopilotKit Python SDK** → **SSE s
 
 - [CopilotKit](https://docs.copilotkit.ai) — React AI copilot framework
 - [AG-UI Protocol](https://docs.ag-ui.com) — Agent-UI interaction protocol
-- [Tremor](https://tremor.so) — React dashboard components
-- [shadcn/ui](https://ui.shadcn.com) — Beautifully designed components
+- [shadcn/ui](https://ui.shadcn.com) — Beautifully designed components (including chart primitives built on Recharts)
+- [Recharts](https://recharts.org) — Composable charting library for React
 - [LangGraph](https://langchain-ai.github.io/langgraph/) — Stateful agent orchestration
 - [AWS Bedrock](https://docs.aws.amazon.com/bedrock/) — Managed foundation models

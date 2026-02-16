@@ -3,6 +3,7 @@
 Full-stack fintech FinOps platform: Next.js 14 dashboard + Python LangGraph agent connected via AG-UI protocol.
 
 <!-- reviewed: 2026-02-16 -->
+<!-- charts migrated from @tremor/react to shadcn/ui (Recharts v3) on 2026-02-16 -->
 
 ## Architecture
 
